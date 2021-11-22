@@ -4,23 +4,24 @@ import (
 	"fmt"
 )
 
-// MaxHeap is a max heap implementation that supports integer values
-type MaxHeap struct {
+// MinHeap is a min heap implementation that supports integer values
+type MinHeap struct {
 	arr []int
 }
 
 // Insert adds an element to the heap
-func (h *MaxHeap) Insert(val int) {
+func (h *MinHeap) Insert(val int) {
 	h.arr = append(h.arr, val)
 	h.percolateUp(len(h.arr) - 1)
 
+	fmt.Printf("heap after inserting %v: %v\n", val, h.arr)
 }
 
 // Extract removes the highest priority element from the max heap
-func (h *MaxHeap) Extract() int {
+func (h *MinHeap) Extract() int {
 
-	max := h.arr[0]
-	fmt.Printf("extracting max: %v\n", max)
+	min := h.arr[0]
+	fmt.Printf("extracting min: %v\n", min)
 
 	last := len(h.arr) - 1
 	h.swap(0, last)
@@ -32,12 +33,12 @@ func (h *MaxHeap) Extract() int {
 
 	fmt.Printf("new heap: %v\n", h.arr)
 
-	return max
+	return min
 }
 
-// percolateUp recursively percolates up the max heap
+// percolateUp recursively percolates up the min heap
 // swapping elements with its parent until parent >= element
-func (h *MaxHeap) percolateUp(i int) {
+func (h *MinHeap) percolateUp(i int) {
 	// base case: if i is root, then we're done
 	if i == 0 {
 		return
@@ -45,34 +46,34 @@ func (h *MaxHeap) percolateUp(i int) {
 
 	parent := parent(i)
 
-	// if the current element deserve to be the parent, swap em and continue percolating
-	if h.arr[parent] < h.arr[i] {
+	// if the current element deserves to be the parent instead, swap and continue percolating
+	if h.arr[i] < h.arr[parent] {
 		h.swap(i, parent)
 		h.percolateUp(parent)
 	}
 }
 
-// percolateDown percolates down the max heap
+// percolateDown percolates down the min heap
 // swapping the current element with its larger child until current >= both children
-func (h *MaxHeap) percolateDown(i int) {
+func (h *MinHeap) percolateDown(i int) {
 
 	l, r := left(i), right(i)
 	last := len(h.arr) - 1
 
 	// while we have at least one left child
-	var child int
 	for l <= last {
-		// pick the index of the larger child (or left if only one)
+		// pick the index of the smaller child (or left if only one)
+		var child int
 		if l == last {
 			child = l
-		} else if h.arr[l] > h.arr[r] {
+		} else if h.arr[l] < h.arr[r] {
 			child = l
-		} else {
+		} else if h.arr[r] < h.arr[l] {
 			child = r
 		}
 
-		// swap the current element with that child if it's smaller
-		if h.arr[i] < h.arr[child] {
+		// swap the current element with that child if it's larger
+		if h.arr[i] > h.arr[child] {
 			h.swap(i, child)
 			i = child
 			l, r = left(i), right(i)
@@ -82,8 +83,8 @@ func (h *MaxHeap) percolateDown(i int) {
 	}
 }
 
-// swap swaps elements i and j in the max heap
-func (h *MaxHeap) swap(i, j int) {
+// swap swaps elements i and j in the min heap
+func (h *MinHeap) swap(i, j int) {
 	h.arr[i], h.arr[j] = h.arr[j], h.arr[i]
 }
 
@@ -104,18 +105,19 @@ func right(i int) int {
 
 func main() {
 
-	// create a new max heap
-	heap := MaxHeap{}
-	fmt.Printf("heap struct: %v\n", heap)
+	// create a new min heap
+	heap := MinHeap{}
 
 	// heapify some data
 	data := []int{100, 30, 205, 12, 23, 400, 150, 12}
 	for _, v := range data {
 		heap.Insert(v)
-		fmt.Printf("heap after inserting %v: %v\n", v, heap.arr)
 	}
 
+	fmt.Printf("data: %+v\n", heap)
+
 	// extract the min a few times
+	heap.Extract()
 	heap.Extract()
 	heap.Extract()
 	heap.Extract()
