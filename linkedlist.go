@@ -42,11 +42,36 @@ func main() {
 		ll.PushBack(i)
 	}
 
+	fmt.Printf("List Length: %d\n", ll.Len())
+
 	// prepend negative values to the list
 	for i := -1; i >= -5; i-- {
 		ll.PushFront(i)
 	}
 
+	fmt.Printf("List Length: %d\n", ll.Len())
+
 	printList(ll)
 	printListReverse(ll)
+
+	// remove a few elements in the list (need to remove by  reference to the Element)
+	// arbitrarily remove every other element
+	valuesToRemove := map[int]bool{
+		4: true,
+		2: true,
+		0: true,
+	}
+	current := ll.Front()
+	for current != nil {
+		next := current.Next()
+		if valuesToRemove[(current.Value).(int)] {
+			fmt.Printf("found value: %d\n", current.Value)
+			ll.Remove(current)
+		}
+
+		current = next
+	}
+
+	printList(ll)
+
 }
