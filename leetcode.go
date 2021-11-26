@@ -97,3 +97,93 @@ func reverseList(head *ListNode) *ListNode {
 
 	return prev
 }
+
+// Linked List Cycle
+// https://leetcode.com/problems/linked-list-cycle/
+func hasCycle(head *ListNode) bool {
+	// key points:
+	// detect a "cycle" in the LL where cycle means you can keep following next and arrive at the same node
+	// pos is used to (internally) denote the index of the node at the tail end of the cycle (or -1 if no cycle exists) -> tbh doesn't seem helpful if it isn't passed as a param though
+	// return true/false of whether the cycle exists
+
+	// can we use multiple pointers?
+
+	// are the values of the nodes unqiue? doesn't seem like we can assume that
+
+	// can I mutate the values in the linked list?
+	// even if we can, this doesn't really help us
+
+	return hasCycleThree(head)
+}
+
+// hasCycleThree uses fast and slow pointers to find the cycle
+// the key insight here being that since we only ever truly "finish"
+// iterating for non-cyclical lists and if we are in a cycle, the systematically
+// faster pointer should always "meet" the slower pointer eventually
+// e.g. fast pointer moves at 2 indices, slow pointer at 1
+// both are "in the cycle" of length K, if the fast pointer is behind by 1 step
+// the pointers will meet on the next iteration. If the fast pointer is 2, then
+// the next iteration will put them in the first position (1 step behind) and so forth
+func hasCycleThree(head *ListNode) bool {
+	// edge case: nil node or solo node
+	if head == nil || head.Next == nil {
+		return false
+	}
+
+	// edge case: solo node with reference to itself
+	if head == head.Next {
+		return true
+	}
+
+	slow, fast := head, head.Next
+	for fast != nil && fast.Next != nil {
+		if slow == fast {
+			return true
+		}
+
+		slow, fast = slow.Next, fast.Next.Next
+	}
+
+	return false
+}
+
+// hasCycleTwo uses two pointers to manually check if the same node
+// is referenced twice (i.e. there's a cycle) and returns false otherwise
+// time limit exceeded
+func hasCycleTwo(head *ListNode) bool {
+	// slower but no additional space: look for repeat refs
+	// time = O(n^2), space = O(1)
+	current := head
+	for current != nil {
+		temp := current.Next
+		for temp != nil {
+			if temp.Next == current {
+				return true
+			}
+			temp = temp.Next
+		}
+		current = current.Next
+	}
+
+	return false
+}
+
+// hasCycleOne iterates and stores stuff
+// if any node reference is duplicated return true, if
+func hasCycleOne(head *ListNode) bool {
+	// we iterate through em all, then we know no cycle exists
+	// time = O(n) best we can do, space = O(n) one mem slot for each node
+
+	mem := make(map[*ListNode]bool)
+
+	current := head
+	for current != nil {
+		if mem[current] {
+			return true
+		}
+		mem[current] = true
+		current = current.Next
+	}
+
+	return false
+}
