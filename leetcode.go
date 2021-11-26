@@ -60,3 +60,40 @@ func maxProfit(prices []int) int {
 
 	return profit
 }
+
+type ListNode struct {
+	Val  int
+	Next *ListNode
+}
+
+// Reverse a linked list
+// https://leetcode.com/problems/reverse-linked-list/
+func reverseList(head *ListNode) *ListNode {
+	// approach 1: iterate through the ll, swap next references to current and vice versa
+	// time = O(n) best we can do, space = constant (best)
+
+	// insight: we need to keep track of the current node, the next AND the previous
+	// to point "Next" on the current appropriately, so we should actually start at head + 1
+	// and keep the actual next in a temp variable
+
+	// edge case: nil head node
+	if head == nil {
+		return nil
+	}
+
+	// edge case: solo node
+	if head.Next == nil {
+		return head
+	}
+
+	prev := head
+	current := head.Next
+	head.Next = nil
+
+	for current != nil {
+		next := current.Next
+		current.Next, prev, current = prev, current, next // just go things
+	}
+
+	return prev
+}
