@@ -187,3 +187,59 @@ func hasCycleOne(head *ListNode) bool {
 
 	return false
 }
+
+func lengthOfLongestSubstring(s string) int {
+	// approach one: sliding window of each character in the string
+	// start with index 0, "expand the window" with the second pointer as we iterate
+	// store letters we currently have in our substring using a set
+	// if repeat found, move start/end and clear set
+	// else keep incrementing maxLength, only update max if end - start > currentMax
+	// time complexity = O(n) we only look at each character once (best)
+	// space complexity = O(n) since our set can be the length of the whole string
+
+	// space is also best I think because how else would we know about repeats without storage?
+	// maaaaybe we can do something like XOR'ing the char values to see if there are any repeats
+	// but even then, we need to know the actual value of the repeat not just a yes/no
+
+	return lengthOfLongestSubstringOne(s)
+}
+
+// worth noting how this performs on ASCII, unicode, UTF-8 encoded strings, etc.?
+func lengthOfLongestSubstringOne(s string) int {
+
+	// edge case: empty string or 1 character; just return
+	if len(s) <= 1 {
+		return len(s)
+	}
+
+	maxLength := 0
+	mem := make(map[rune]bool, len(s))
+
+	// go strings are really just a slice of runes, so there are some nuances here
+	// i.e. this for range loop iterates through the string one rune at a time
+	// see: https://go.dev/blog/strings
+
+	for start, end := 0, 0; end < len(s); end++ {
+		rEnd := rune(s[end])
+
+		// if repeat, slide start and continuously remove values from mem
+		if mem[rEnd] {
+			var rStart rune
+			for mem[rEnd] {
+				rStart = rune(s[start])
+				mem[rStart] = false
+				start++
+			}
+		}
+
+		// if size of set > maxLength, update it
+		if end-start+1 > maxLength {
+			maxLength = end - start + 1
+		}
+
+		// no matter what, add the current value to mem
+		mem[rEnd] = true
+	}
+
+	return maxLength
+}
