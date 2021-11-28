@@ -243,3 +243,68 @@ func lengthOfLongestSubstringOne(s string) int {
 
 	return maxLength
 }
+
+// Longest Repeating Character Replacement
+// https://leetcode.com/problems/longest-repeating-character-replacement/
+// todo: work in progress, my brain is tired
+func characterReplacement(s string, k int) int {
+	// brute force: try every combination of substrings w/ replacements -> O(n^2)
+
+	// approach one: sliding window?
+	// start, end pointers initialized at 0; map[rune]bool (set) containing chars we replaced
+	// letter initialized to first char in string
+
+	// iterate through the string chars
+	// store first letter as the one to try to replace others with
+	// expand window (increment end): decrement k if a different letter, if same letter = freebie
+	// if k == 0 && current letter != letter we're replacing with:
+	// then
+	// update longestSubstring if end - start + 1 > longestSubstring
+
+	// edge cases? empty string return 0, k > len(s) return len(s) since we can just replace em all
+
+	if len(s) == 0 {
+		return 0
+	}
+
+	if k > len(s) {
+		return len(s)
+	}
+
+	maxLength := 0
+	letter := rune(s[0])                    // "A"
+	replacements := make(map[rune]int, k+1) // map char -> # of ocurrences
+	replacementsLeft := k
+
+	// "AABABBA", k = 1
+	for i, j := 0, 0; j < len(s); j++ { // i = 5 j = 5
+		current := rune(s[j]) // "B"
+		if current != letter {
+			replacementsLeft -= 1      // repalcementsLeft = 0
+			replacements[current] += 1 // { "B" => 1 }
+
+			// if we've already replaced max times, shrink the window + update our storage
+			for replacementsLeft < 0 {
+				first := rune(s[i]) // "B"
+				if replacements[first] > 0 {
+					replacements[first] -= 1
+					replacementsLeft++
+				}
+				i++
+			}
+
+			// update our "letter" to be the same as the start of our new window if different
+			// also remove these from our set because they wouldn't count as replacements now!
+			if i <= j && rune(s[i]) != letter {
+				replacementsLeft += replacements[letter]
+				delete(replacements, letter)
+			}
+		}
+
+		if j-i+1 > maxLength {
+			maxLength = j - i + 1 // maxLength = 4 ("AABA")
+		}
+	}
+
+	return maxLength
+}
