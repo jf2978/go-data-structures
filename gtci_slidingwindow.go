@@ -46,7 +46,6 @@ func findMaxSubArray(k int, arr []int) int {
 
 // Given a string, find the length of the longest substring in it with no more than K distinct characters.
 // derivative of leetcode question: lengthOfLongestSubstringOne (already solved)
-
 func longestSubstringKDistinct(s string, k int) int {
 	// approach one: store distinct characters as a map char -> list of indices
 	// iterate through the string (one rune at a time):
@@ -121,6 +120,47 @@ func findMinSubarray(s int, arr []int) int {
 	return min
 }
 
+// Given an array of characters where each character represents a fruit tree,
+// you are given two baskets, and your goal is to put maximum number of fruits in each basket.
+// The only restriction is that each basket can have only one type of fruit.
+
+// You can start with any tree, but you can’t skip a tree once you have started. You will pick one fruit from each tree until you cannot,
+// i.e., you will stop when you have to pick from a third fruit type.
+func maxFruit(fruits []rune) int {
+	// approach one: try every combination of fruit combos (basically like substrings)
+	// time = O(n^2) which is bad
+
+	// approach two: this is basically asking "whats the longest substring with at most 2 unique characters"
+	// same approach as longestSubstringKDistinct except constrained to where K = 2 and
+	// handling it as an array of runes directly instead of a string (implicitly the same thing)
+	// I''ll re-implement this using the better approach I found after the fact (using a map that counts occurrences)
+
+	maxFruits := 0
+	mem := make(map[rune]int, len(fruits)) // maps char -> # of occurrences of this character
+	for i, j := 0, 0; j < len(fruits); j++ {
+		lastFruit := fruits[j]
+		mem[lastFruit] = mem[lastFruit] + 1
+
+		// if we're already at our 2 fruit limit, shrink the window + update our storage
+		for len(mem) > 2 {
+			firstChar := fruits[i]
+			mem[firstChar] = mem[firstChar] - 1
+
+			if mem[firstChar] == 0 {
+				delete(mem, firstChar)
+			}
+
+			i++
+		}
+
+		if j-i+1 > maxFruits {
+			maxFruits = j - i + 1
+		}
+	}
+
+	return maxFruits
+}
+
 func main() {
 	k1 := 3
 	arr1 := []int{2, 1, 5, 1, 3, 2}
@@ -167,5 +207,13 @@ func main() {
 	k5 := 10
 	ans9 := longestSubstringKDistinct(str2, k5)
 	fmt.Printf("longestSubstringKDistinct(%s, %d) = %d\n", str2, k5, ans9)
+
+	fruits1 := []rune{'A', 'B', 'C', 'A', 'C'}
+	ans10 := maxFruit(fruits1)
+	fmt.Printf("maxFruit(%s) = %d\n", string(fruits1), ans10)
+
+	fruits2 := []rune{'A', 'B', 'C', 'B', 'B', 'C'}
+	ans11 := maxFruit(fruits2)
+	fmt.Printf("maxFruit(%s) = %d\n", string(fruits2), ans11)
 
 }
