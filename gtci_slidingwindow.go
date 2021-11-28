@@ -1,12 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // practice coding questions from Grokking the Coding Interview
 // some of these are repeats of what is on LeetCode, but repitition of the same pattern
 // over and over again will hammer in my understanding of the basic problem being solved!
-
-/** SLIDING WINDOW */
 
 // Given an array of positive numbers and a positive number ‘k,’
 // find the maximum sum of any contiguous subarray of size ‘k’.
@@ -42,6 +42,51 @@ func findMaxSubArray(k int, arr []int) int {
 	}
 
 	return max
+}
+
+// Given a string, find the length of the longest substring in it with no more than K distinct characters.
+// derivative of leetcode question: lengthOfLongestSubstringOne (already solved)
+
+func longestSubstringKDistinct(s string, k int) int {
+	// approach one: store distinct characters as a map char -> list of indices
+	// iterate through the string (one rune at a time):
+	// add current character to the map char -> append(current j index) to tail of linked list
+
+	// while set size > k:
+	// lookup char in map and remove from front pf the list; if list is empty after this, delete the entry entirely from the map
+	// increment i
+
+	// in any case, update maxLength with j - i + 1 if it's > maxLength
+	// (implied) if set size <= k then just keep expanding the window (j++), we allow eq here because repeat characters could extend this window
+
+	maxLength := 0
+	mem := make(map[rune][]int, len(s)) // maps char -> indices where this character occurs
+	for i, j := 0, 0; j < len(s); j++ {
+		lastChar := rune(s[j])
+		mem[lastChar] = append(mem[lastChar], j)
+
+		// if we have too many distinct characters, slide the window + update our storage
+		for len(mem) > k {
+			firstChar := rune(s[i])
+			indices := mem[firstChar]
+
+			indices = indices[1:]
+			if len(indices) == 0 {
+				delete(mem, firstChar) // remove entry from map entirely if there are no more occurrences
+			}
+
+			i++
+		}
+
+		if j-i+1 > maxLength {
+			maxLength = j - i + 1
+		}
+	}
+
+	return maxLength
+
+	// note: better way to do this would've been to just *count* the occurrences in the map instead of having a list of all the indices
+	// this way was a little more convoluted, but it worked!
 }
 
 // Given an array of positive numbers and a positive number ‘S,’ find the length
@@ -95,15 +140,32 @@ func main() {
 	ans3 := findMinSubarray(s1, arr3) // expected output: 2
 	fmt.Printf("findMinSubarray(%d, %v) = %d\n", s1, arr3, ans3)
 
-	s2 := 7
 	arr4 := []int{2, 1, 5, 2, 8}
 
-	ans4 := findMinSubarray(s2, arr4) // expected output: 1
-	fmt.Printf("findMinSubarray(%d, %v) = %d\n", s2, arr4, ans4)
+	ans4 := findMinSubarray(s1, arr4) // expected output: 1
+	fmt.Printf("findMinSubarray(%d, %v) = %d\n", s1, arr4, ans4)
 
 	s3 := 8
 	arr5 := []int{3, 4, 1, 1, 6}
 
 	ans5 := findMinSubarray(s3, arr5) // expected output: 3
 	fmt.Printf("findMinSubarray(%d, %v) = %d\n", s3, arr5, ans5)
+
+	str1 := "araaci"
+	ans6 := longestSubstringKDistinct(str1, k2)
+	fmt.Printf("longestSubstringKDistinct(%s, %d) = %d\n", str1, k2, ans6)
+
+	k3 := 1
+	ans7 := longestSubstringKDistinct(str1, k3)
+	fmt.Printf("longestSubstringKDistinct(%s, %d) = %d\n", str1, k3, ans7)
+
+	str2 := "cbbebi"
+	k4 := 3
+	ans8 := longestSubstringKDistinct(str2, k4)
+	fmt.Printf("longestSubstringKDistinct(%s, %d) = %d\n", str2, k4, ans8)
+
+	k5 := 10
+	ans9 := longestSubstringKDistinct(str2, k5)
+	fmt.Printf("longestSubstringKDistinct(%s, %d) = %d\n", str2, k5, ans9)
+
 }
