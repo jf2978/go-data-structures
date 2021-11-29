@@ -297,3 +297,30 @@ func characterReplacement(s string, k int) int {
 
 	return maxLength
 }
+
+// Sum of Two Integers
+// https://leetcode.com/problems/sum-of-two-integers/
+// note to self: I think these are good to know and kinda interesting, but I doubt I'll actually be asked these directly
+// mainly because they oftentimes read like brain teasers and say way more about prep/niche knowledge
+// than actual problem solving skills
+func getSum(a int, b int) int {
+	// approach one: naive bitwise addition
+	// iterate through a and b bit by bit (right most bit first)
+	// XOR the bits to get the next bit for the sum (including carry)
+	// AND the bits to figure out the next carry bit
+
+	// close but no dice!
+
+	// the "elegant" solution provided (broken down for me to learn)
+	for b != 0 {
+		// a = XORing a and b effectively gives us the bit we need when adding each
+		// now the problem is reduced to finding the carry...
+		// ANDing a and b and shifting left does just that
+		// the case where 1 & 1 is the only time we'd have a carry
+		// we itearte through our values for a and b in sync because the bits line up
+		// as we XOR "add without carry" and compute the AND for the next iteration "find the carry"
+		a, b = a^b, (a&b)<<1
+	}
+
+	return a
+}
