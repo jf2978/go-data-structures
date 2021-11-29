@@ -250,16 +250,10 @@ func lengthOfLongestSubstringOne(s string) int {
 func characterReplacement(s string, k int) int {
 	// brute force: try every combination of substrings w/ replacements -> O(n^2)
 
-	// approach one: sliding window?
-	// start, end pointers initialized at 0; map[rune]bool (set) containing chars we replaced
-	// letter initialized to first char in string
-
-	// iterate through the string chars
-	// store first letter as the one to try to replace others with
-	// expand window (increment end): decrement k if a different letter, if same letter = freebie
-	// if k == 0 && current letter != letter we're replacing with:
-	// then
-	// update longestSubstring if end - start + 1 > longestSubstring
+	// approach one: sliding window with map of char -> frequency
+	// start, end pointers initialized at 0; map[rune]int containing chars and their frequency
+	// very close, but I kept getting stuck on the part when replacements > k
+	// fixed this based on a forum answer: https://leetcode.com/problems/longest-repeating-character-replacement/discuss/1341352/Go-Sliding-window-with-comments
 
 	// edge cases? empty string return 0, k > len(s) return len(s) since we can just replace em all
 
@@ -271,38 +265,33 @@ func characterReplacement(s string, k int) int {
 		return len(s)
 	}
 
-	maxLength := 0
-	letter := rune(s[0])                    // "A"
-	replacements := make(map[rune]int, k+1) // map char -> # of ocurrences
-	replacementsLeft := k
+	start, longestStreak, maxLength := 0, 0, 0
+	freq := make(map[rune]int) // map char -> # of ocurrences
 
-	// "AABABBA", k = 1
-	for i, j := 0, 0; j < len(s); j++ { // i = 5 j = 5
-		current := rune(s[j]) // "B"
-		if current != letter {
-			replacementsLeft -= 1      // repalcementsLeft = 0
-			replacements[current] += 1 // { "B" => 1 }
+	for i, val := range s {
+		freq[val] += 1
 
-			// if we've already replaced max times, shrink the window + update our storage
-			for replacementsLeft < 0 {
-				first := rune(s[i]) // "B"
-				if replacements[first] > 0 {
-					replacements[first] -= 1
-					replacementsLeft++
-				}
-				i++
-			}
-
-			// update our "letter" to be the same as the start of our new window if different
-			// also remove these from our set because they wouldn't count as replacements now!
-			if i <= j && rune(s[i]) != letter {
-				replacementsLeft += replacements[letter]
-				delete(replacements, letter)
-			}
+		// our "longest streak" is the max frequency of the current character
+		// keeping track of this lets us know how many replacements we'd
+		// theoretically make for every *other* character in our substring
+		if freq[val] > longestStreak {
+			longestStreak = freq[val]
 		}
 
-		if j-i+1 > maxLength {
-			maxLength = j - i + 1 // maxLength = 4 ("AABA")
+		// if len(substring) - longestStreak > k means we've replaced too many times
+		// increment start, decrement the frequency of that char and hope to find a better streak
+		// next iteration
+
+		// note: there's no need to loop here though because we only care about windows
+		// at least the size of our best so far, so we can just slide and *not* shrink the window
+		if i-start+1-longestStreak > k {
+			startChar := rune(s[start])
+			freq[startChar]--
+			start++
+		}
+
+		if i-start+1 > maxLength {
+			maxLength = i - start + 1
 		}
 	}
 
