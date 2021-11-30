@@ -347,6 +347,9 @@ func mergeKLists(lists []*ListNode) *ListNode {
 	// n = total elements across all linked lists to be merged
 	// time complexity = O(n^2) we have to compare nodes to the intermediate merged list
 	// space complexity = (not including resulting linked list) constant space
+
+	// (from solution post) also can apply approach 2 in a divide&conquer manner, which I think
+	// is a pretty cool approach actually
 }
 
 func mergeKListsOne(lists []*ListNode) *ListNode {
@@ -381,4 +384,34 @@ func mergeKListsOne(lists []*ListNode) *ListNode {
 	}
 
 	return head
+}
+
+// Top K Frequent Elements
+// https://leetcode.com/problems/top-k-frequent-elements/
+func topKFrequent(nums []int, k int) []int {
+	// approach one: use priority queue where more frequent == higher priority
+	// customize heap where priority of root is most frequent
+	// iterate through nums adding each unique element + updating their priorities accordingly
+	// while k > 0: extract max from the heap
+	// time complexity: heapify nums = O(nlogn) + extract k times = O(klogn)
+	// since k is at most n, O(nlogn)
+	// space complexity: heap space = number of unique elements so O(n) worst case
+
+	// can this get better time/space wise?
+
+	// approach two: use a map to count frequencies and an array to store sorted keys
+	// time: sorting takes log comparisons at best (in this case we're sorting unique elements)
+	// k is at worst n, but maybe accurate time complexity is O(klogk)
+	// space: O(n)
+
+	// only a slight optimization, sorting is the bottleneck, is it possible to do this without s?
+
+	// approach three: use a better/tailored sorting algorithm that isn't nlogn (bucket sort?)
+	// first pass: run through nums, store frequency counts in map (int->int)
+	// second pass: run through map entires, store values in buckets based on frequencies
+	// third pass: run through buckets (iterate to highest frequencies first), add elements until
+	// k limit is hit
+	// time complexity: 3 passes at most n elements in each -> O(3n) = O(n)
+	// space complexity: frequencies map = # unique elements in nums, buckets = same
+	// both would be n worst case = (n)
 }
