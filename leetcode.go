@@ -390,12 +390,6 @@ func mergeKListsOne(lists []*ListNode) *ListNode {
 // https://leetcode.com/problems/top-k-frequent-elements/
 func topKFrequent(nums []int, k int) []int {
 	// approach one: use priority queue where more frequent == higher priority
-	// customize heap where priority of root is most frequent
-	// iterate through nums adding each unique element + updating their priorities accordingly
-	// while k > 0: extract max from the heap
-	// time complexity: heapify nums = O(nlogn) + extract k times = O(klogn)
-	// since k is at most n, O(nlogn)
-	// space complexity: heap space = number of unique elements so O(n) worst case
 
 	// can this get better time/space wise?
 
@@ -414,4 +408,15 @@ func topKFrequent(nums []int, k int) []int {
 	// time complexity: 3 passes at most n elements in each -> O(3n) = O(n)
 	// space complexity: frequencies map = # unique elements in nums, buckets = same
 	// both would be n worst case = (n)
+}
+
+// approach one: use priority queue where more frequent == higher priority
+// customize heap where priority of root is most frequent
+// iterate through nums adding each unique element + updating their priorities accordingly
+// while k > 0: extract max from the heap
+// time complexity: heapify nums = O(nlogn) + extract k times = O(klogn)
+// since k is at most n, O(nlogn)
+// space complexity: heap space = number of unique elements so O(n) worst case
+func topKFrequentApproachOne(nums []int, k int) {
+
 }

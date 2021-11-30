@@ -20,7 +20,6 @@ func (h *MaxHeap) Insert(val int) {
 func (h *MaxHeap) Extract() int {
 
 	max := h.arr[0]
-	fmt.Printf("extracting max: %v\n", max)
 
 	last := len(h.arr) - 1
 	h.swap(0, last)
@@ -29,8 +28,6 @@ func (h *MaxHeap) Extract() int {
 	// so here, we're re-assigning the heap slice to the same underlying data but excluding the last element
 	h.arr = h.arr[:last]
 	h.percolateDown(0)
-
-	fmt.Printf("new heap: %v\n", h.arr)
 
 	return max
 }
