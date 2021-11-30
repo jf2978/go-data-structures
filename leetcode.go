@@ -324,3 +324,61 @@ func getSum(a int, b int) int {
 
 	return a
 }
+
+// merge K sorted lists
+// https://leetcode.com/problems/merge-k-sorted-lists/
+func mergeKLists(lists []*ListNode) *ListNode {
+
+	if len(lists) == 0 {
+		return nil
+	}
+
+	// approach 1: use a min heap to insert the data into one heap then extract em
+	// n = total elements across all linked lists to be merged
+	// time complexity = heapify (nlogn) + extract all (nlogn)
+	// space complexity = heap itself (n) + resulting linked list (n)
+
+	return mergeKListsOne(lists)
+
+	// additional insight: we can also advantage of the fact that each sub list is sorted
+
+	// approach 2: use two pointers to merge two lists and repeat for each subsequent list
+	// takes advantage of the fact that each list are sorted in ascending order
+	// n = total elements across all linked lists to be merged
+	// time complexity = O(n^2) we have to compare nodes to the intermediate merged list
+	// space complexity = (not including resulting linked list) constant space
+}
+
+func mergeKListsOne(lists []*ListNode) *ListNode {
+	// heapify data
+	heap := MinHeap{}
+	for _, list := range lists {
+		node := list
+		for node != nil {
+			heap.Insert(node.Val)
+			node = node.Next
+		}
+	}
+
+	if len(heap.arr) == 0 {
+		return nil
+	}
+
+	// extract min & build a new singly linked list
+	head := &ListNode{
+		Val:  heap.Extract(),
+		Next: nil,
+	}
+
+	current := head
+	for len(heap.arr) > 0 {
+		min := heap.Extract()
+		current.Next = &ListNode{
+			Val:  min,
+			Next: nil,
+		}
+		current = current.Next
+	}
+
+	return head
+}

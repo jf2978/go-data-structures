@@ -66,7 +66,7 @@ func (h *MinHeap) percolateDown(i int) {
 		var child int
 		if l == last {
 			child = l
-		} else if h.arr[l] < h.arr[r] {
+		} else if h.arr[l] <= h.arr[r] { // just pick one if they're equal
 			child = l
 		} else if h.arr[r] < h.arr[l] {
 			child = r
