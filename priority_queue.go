@@ -1,157 +1,98 @@
+// This example demonstrates a priority queue built using the heap interface.
+// no need to freakin re-invent the wheel since I
+// went through the exercise of writing (simplified) heaps from scractch
+// when I actually need to use the data structure though, I might as well use this
+// https://pkg.go.dev/container/heap#example-package-PriorityQueue
 package main
 
 import (
+	"container/heap"
 	"fmt"
 )
 
-// PriorityNode is a "generic" element with an integer priority stored in a PriorityQueue
-type PriorityNode struct {
-	val      int
-	priority int
+// An Item is something we manage in a priority queue.
+type Item struct {
+	value    string // The value of the item; arbitrary.
+	priority int    // The priority of the item in the queue.
+	// The index is needed by update and is maintained by the heap.Interface methods.
+	index int // The index of the item in the heap.
 }
 
-// compareTo is priority comparator function that returns -1 if n < a, 0 if n == a and 1 if n > a
-func (n *PriorityNode) compareTo(a *PriorityNode) int {
-	if n.priority > a.priority {
-		return 1
-	} else if n.priority < a.priority {
-		return -1
-	} else {
-		return 0
-	}
+// A PriorityQueue implements heap.Interface and holds Items.
+type PriorityQueue []*Item
+
+func (pq PriorityQueue) Len() int { return len(pq) }
+
+func (pq PriorityQueue) Less(i, j int) bool {
+	// We want Pop to give us the highest, not lowest, priority so we use greater than here.
+	return pq[i].priority > pq[j].priority
 }
 
-// PriorityQueue is a heap implementation that stores PriorityNode values
-type PriorityQueue struct {
-	arr []*PriorityNode
+func (pq PriorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+	pq[i].index = i
+	pq[j].index = j
 }
 
-// Insert adds an element to the heap
-func (p *PriorityQueue) Insert(n *PriorityNode) {
-	p.arr = append(p.arr, n)
-	p.percolateUp(len(p.arr) - 1)
+func (pq *PriorityQueue) Push(x interface{}) {
+	n := len(*pq)
+	item := x.(*Item)
+	item.index = n
+	*pq = append(*pq, item)
 }
 
-// ExtractMax removes the highest priority element from the queue
-func (p *PriorityQueue) ExtractMax() *PriorityNode {
-	max := p.arr[0]
-
-	last := len(p.arr) - 1
-	p.swap(0, last)
-
-	// remember: slices are not arrays, but rather "flexible views into the elements of an array"
-	// so here, we're re-assigning the heap slice to the same underlying data but excluding the last element
-	p.arr = p.arr[:last]
-	p.percolateDown(0)
-
-	return max
+func (pq *PriorityQueue) Pop() interface{} {
+	old := *pq
+	n := len(old)
+	item := old[n-1]
+	old[n-1] = nil  // avoid memory leak
+	item.index = -1 // for safety
+	*pq = old[0 : n-1]
+	return item
 }
 
-// Search looks up the node with the provided value from the priority queue
-// since heaps can't be traversed like BSTs (different constraints) this is just a linear lookup
-func (p *PriorityQueue) Search(val int) *PriorityNode {
-	for _, node := range p.arr {
-		if node.val == val {
-			return node
-		}
-	}
-
-	return nil
+// update modifies the priority and value of an Item in the queue.
+func (pq *PriorityQueue) update(item *Item, value string, priority int) {
+	item.value = value
+	item.priority = priority
+	heap.Fix(pq, item.index)
 }
 
-// percolateUp recursively percolates up the priority queue
-// swapping elements with its parent until parent >= element
-func (h *PriorityQueue) percolateUp(i int) {
-	// base case: if i is root, then we're done
-	if i == 0 {
-		return
-	}
-
-	parent := parent(i)
-
-	// if the current element deserve to be the parent, swap em and continue percolating
-	if h.arr[parent].compareTo(h.arr[i]) < 0 {
-		h.swap(i, parent)
-		h.percolateUp(parent)
-	}
-}
-
-// percolateDown percolates down the max heap
-// swapping the current element with its larger child until current >= both children
-func (h *PriorityQueue) percolateDown(i int) {
-
-	l, r := left(i), right(i)
-	last := len(h.arr) - 1
-
-	// while we have at least one left child
-	var child int
-	for l <= last {
-		// pick the index of the larger child (or left if only one)
-		if l == last {
-			child = l
-		} else if h.arr[l].compareTo(h.arr[r]) > 0 {
-			child = l
-		} else {
-			child = r
-		}
-
-		// swap the current element with that child if it's smaller
-		if h.arr[i].compareTo(h.arr[child]) < 0 {
-			h.swap(i, child)
-			i = child
-			l, r = left(i), right(i)
-		} else {
-			return
-		}
-	}
-}
-
-// swap swaps elements i and j in the max heap
-func (h *PriorityQueue) swap(i, j int) {
-	h.arr[i], h.arr[j] = h.arr[j], h.arr[i]
-}
-
-// parent returns the index of the parent of the provided index i
-func parent(i int) int {
-	return (i - 1) / 2
-}
-
-// left returns the index of the left child of the provided index i
-func left(i int) int {
-	return (2 * i) + 1
-}
-
-// right returns the index of the right child of the provided index i
-func right(i int) int {
-	return (2 * i) + 2
-}
-
+// This example creates a PriorityQueue with some items, adds and manipulates an item,
+// and then removes the items in priority order.
 func main() {
-
-	// create a new max heap
-	pq := PriorityQueue{}
-	fmt.Printf("priority queue struct: %v\n", pq)
-
-	// heapify some data
-	data := []*PriorityNode{
-		&PriorityNode{val: 100, priority: 20},
-		&PriorityNode{val: 23, priority: 200},
-		&PriorityNode{val: 1, priority: 10},
-		&PriorityNode{val: 32, priority: 5},
-		&PriorityNode{val: 56, priority: 12},
-		&PriorityNode{val: 77, priority: 0},
-	}
-	for _, v := range data {
-		pq.Insert(v.val) // ignore priority
-		fmt.Printf("heap after inserting %v: %v\n", v, pq.arr)
+	// note: use strconv.Itoa() for using this for ints instead
+	// Some items and their priorities.
+	items := map[string]int{
+		"banana": 3, "apple": 2, "pear": 4,
 	}
 
-	// extract the min a few times
-	pq.ExtractMax()
-	pq.ExtractMax()
-	pq.ExtractMax()
-	pq.ExtractMax()
-	pq.ExtractMax()
-	pq.ExtractMax()
-	pq.ExtractMax()
+	// Create a priority queue, put the items in it, and
+	// establish the priority queue (heap) invariants.
+	pq := make(PriorityQueue, len(items))
+	i := 0
+	for value, priority := range items {
+		pq[i] = &Item{
+			value:    value,
+			priority: priority,
+			index:    i,
+		}
+		i++
+	}
+	heap.Init(&pq)
+
+	// Insert a new item and then modify its priority.
+	item := &Item{
+		value:    "orange",
+		priority: 1,
+	}
+
+	heap.Push(&pq, item)
+	pq.update(item, item.value, 5)
+
+	// Take the items out; they arrive in decreasing priority order.
+	for pq.Len() > 0 {
+		item := heap.Pop(&pq).(*Item)
+		fmt.Printf("%.2d:%s ", item.priority, item.value)
+	}
 }
