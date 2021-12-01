@@ -1,5 +1,11 @@
 package main
 
+import (
+	"container/heap"
+	"strconv"
+	"strings"
+)
+
 // list of my answers to a bunch of leetcode questions because version-controlled work > not version-controlled work
 // also it feels nice to commit my answers to git
 
@@ -389,18 +395,16 @@ func mergeKListsOne(lists []*ListNode) *ListNode {
 // Top K Frequent Elements
 // https://leetcode.com/problems/top-k-frequent-elements/
 func topKFrequent(nums []int, k int) []int {
-	// approach one: use priority queue where more frequent == higher priority
+	// approach one: use priority queue where more frequent == higher priority; store then pop k times
+	// time complexity: get frequencies = O(n), heapify = O(nlogn), extract top k = O(klogn) -> O(nlogn)
+	// space complexity: map/heap space = number of unique elements so O(n) worst case
+	return topKFrequentApproachOne(nums, k)
 
 	// can this get better time/space wise?
 
-	// approach two: use a map to count frequencies and an array to store sorted keys
-	// time: sorting takes log comparisons at best (in this case we're sorting unique elements)
-	// k is at worst n, but maybe accurate time complexity is O(klogk)
-	// space: O(n)
-
 	// only a slight optimization, sorting is the bottleneck, is it possible to do this without s?
 
-	// approach three: use a better/tailored sorting algorithm that isn't nlogn (bucket sort?)
+	// approach two: use a better/tailored sorting algorithm that isn't nlogn (bucket sort?)
 	// first pass: run through nums, store frequency counts in map (int->int)
 	// second pass: run through map entires, store values in buckets based on frequencies
 	// third pass: run through buckets (iterate to highest frequencies first), add elements until
@@ -408,15 +412,143 @@ func topKFrequent(nums []int, k int) []int {
 	// time complexity: 3 passes at most n elements in each -> O(3n) = O(n)
 	// space complexity: frequencies map = # unique elements in nums, buckets = same
 	// both would be n worst case = (n)
+
+	// return topKFrequentApproachOne(nums, k) <- slightly faster, but way worse space wise according
+	// to leetcode stats lol
 }
 
-// approach one: use priority queue where more frequent == higher priority
-// customize heap where priority of root is most frequent
-// iterate through nums adding each unique element + updating their priorities accordingly
-// while k > 0: extract max from the heap
-// time complexity: heapify nums = O(nlogn) + extract k times = O(klogn)
-// since k is at most n, O(nlogn)
-// space complexity: heap space = number of unique elements so O(n) worst case
-func topKFrequentApproachOne(nums []int, k int) {
+func topKFrequentApproachOne(nums []int, k int) []int {
+	// iterate through nums to get their frequencies
+	freqs := make(map[int]int)
+	for _, v := range nums {
+		freqs[v]++
+	}
 
+	// add each element to the pq
+	pq := make(PriorityQueue, len(freqs))
+	i := 0
+	for k, v := range freqs {
+		pq[i] = &Item{
+			value:    strconv.Itoa(k),
+			priority: v,
+			index:    i,
+		}
+		i++
+	}
+
+	heap.Init(&pq)
+
+	// while k > 0: extract max (most frequent element) from the pq
+	result := []int{}
+	for k > 0 {
+		item := heap.Pop(&pq).(*Item)
+
+		itemVal, err := strconv.Atoi(item.value)
+		if err != nil {
+			return nil
+		}
+
+		result = append(result, itemVal)
+		k--
+	}
+
+	return result
+}
+
+func topKFrequentApproachTwo(nums []int, k int) []int {
+	// iterate through nums to get their frequencies number -> frequency
+	freqs := make(map[int]int)
+	for _, v := range nums {
+		freqs[v]++
+	}
+
+	// put numbers into buckets where index = frequency of that value
+	// since frequency of any number is at most len(nums), we init with that many buckets
+	// but to get around zero actually being a valid element (with some high frequency), we bucket keys as strings
+	// and convert back when we're appending to our result
+	l := len(nums)
+	buckets := make([]string, l)
+	for key, val := range freqs {
+		// we index on frequency so that the order of our elements imply the most frequent nums
+		// and to avoid iterating through the buckets backwards, we index by len(nums) - frequency - 1
+		buckets[l-1-val] = strconv.Itoa(key)
+	}
+
+	// now just go through our buckets and add every non-empty value to our result until we reach k
+	i := 0
+	result := make([]int, k)
+	for k > 0 {
+		if buckets[i] != "" {
+			top, err := strconv.Atoi(buckets[i])
+			if err != nil {
+				panic(err)
+			}
+			result = append(result, top)
+		}
+		k--
+		i++
+	}
+
+	return result
+}
+
+func topKFrequentApproachTwo(nums []int, k int) []int {
+	// edge case: if nums has only 1 element, we know the answer
+	if len(nums) < 2 {
+		return nums
+	}
+
+	// iterate through nums to get their frequencies number -> frequency
+	freqs := make(map[int]int)
+	for _, v := range nums {
+		freqs[v]++
+	}
+
+	// put numbers into buckets where index = frequency of that value
+	// since frequency of any number is at most len(nums), we init with that many buckets
+	// but to get around zero actually being a valid element (with some high frequency), we bucket keys as strings
+	// and convert back when we're appending to our result
+	l := len(nums)
+	buckets := make([]string, l+1)
+
+	for key, val := range freqs {
+		// we index on frequency so that the order of our elements imply the most frequent nums
+		// and to avoid iterating through the buckets backwards, we index by len(nums) - frequency - 1
+		currentVal := buckets[l-(val-1)]
+
+		if currentVal != "" {
+			// concatenate them if another value has the same frequency
+			buckets[l-(val-1)] = buckets[l-(val-1)] + "," + strconv.Itoa(key)
+		} else {
+			buckets[l-(val-1)] = strconv.Itoa(key)
+		}
+
+	}
+
+	// now just go through our buckets and add every non-empty value to our result until we reach k
+
+	i := 0
+	result := []int{}
+
+	for k > 0 {
+		if buckets[i] != "" {
+			values := strings.Split(buckets[i], ",")
+
+			for _, v := range values {
+				if k == 0 {
+					break
+				}
+
+				top, err := strconv.Atoi(v)
+				if err != nil {
+					panic(err)
+				}
+				result = append(result, top)
+				k--
+			}
+		}
+		i++
+	}
+
+	return result
 }
