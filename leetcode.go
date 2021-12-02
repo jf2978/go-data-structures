@@ -700,6 +700,8 @@ func max(a, b int) int {
 	return b
 }
 
+// Same Tree
+// https://leetcode.com/problems/same-tree/
 func isSameTree(p *TreeNode, q *TreeNode) bool {
 	// same if they are "structurally" identical and the nodes have the same value
 
@@ -769,4 +771,30 @@ func isSameTreeBFS(p *TreeNode, q *TreeNode) bool {
 	}
 
 	return true
+}
+
+// Invert Binary Tree
+// https://leetcode.com/problems/invert-binary-tree/
+func invertTree(root *TreeNode) *TreeNode {
+	// approach one: traverse, swap left and right references for every node (recursive)
+	// note: traversal (preorder, postorder, etc.) would be the same here
+	// base case: if root == nil -> return nil
+	// process root: swap left and right references, continue traversing those
+	// no return value / stack frame build up value
+	return invertTreeHelper(root)
+}
+
+func invertTreeHelper(root *TreeNode) *TreeNode {
+	// base case
+	if root == nil {
+		return nil
+	}
+
+	// process node
+	root.Left, root.Right = root.Right, root.Left
+
+	invertTreeHelper(root.Left)
+	invertTreeHelper(root.Right)
+
+	return root
 }
