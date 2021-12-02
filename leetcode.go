@@ -699,3 +699,74 @@ func max(a, b int) int {
 
 	return b
 }
+
+func isSameTree(p *TreeNode, q *TreeNode) bool {
+	// same if they are "structurally" identical and the nodes have the same value
+
+	// approach one: dfs both trees side by side, if we find a hiccup return
+	// base case: if p == nil && q == nil -> return true
+	// structural check: if only one is nil -> return false (they should be the same)
+	// value check: if p.Val != q.Val -> return false
+	// return (stack frame build up): return dfs(p.left, q.left) && dfs(p.right, q.right)
+	return isSameTreeDFS(p, q)
+
+	// approach two: do BFS instead
+	// return isSameTreeBFS(p, q)
+}
+
+func isSameTreeDFS(p *TreeNode, q *TreeNode) bool {
+	// base case
+	if p == nil && q == nil {
+		return true
+	}
+
+	// structural check
+	if p == nil || q == nil {
+		return false
+	}
+
+	// node value check
+	if p.Val != q.Val {
+		return false
+	}
+
+	return isSameTreeDFS(p.Left, q.Left) && isSameTreeDFS(p.Right, q.Right)
+}
+
+func isSameTreeBFS(p *TreeNode, q *TreeNode) bool {
+	// base case
+	if p == nil && q == nil {
+		return true
+	}
+
+	// structural check
+	if (p == nil && q != nil) || (q == nil && p != nil) {
+		return false
+	}
+
+	// keep track of tree nodes to read using two separate queues
+	queue1, queue2 := make([]*TreeNode, 0), make([]*TreeNode, 0)
+	queue1, queue2 = append(queue1, p), append(queue2, q)
+
+	for len(queue1) > 0 && len(queue2) > 0 {
+		pFront, qFront := queue1[0], queue2[0]
+		queue1, queue2 = queue1[1:], queue2[1:] // slices are great
+
+		if pFront == nil && qFront == nil {
+			continue
+		}
+
+		if pFront == nil || qFront == nil {
+			return false
+		}
+
+		if pFront.Val != qFront.Val {
+			return false
+		}
+
+		queue1 = append(queue1, pFront.Left, pFront.Right)
+		queue2 = append(queue2, qFront.Left, qFront.Right)
+	}
+
+	return true
+}
