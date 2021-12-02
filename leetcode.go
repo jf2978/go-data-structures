@@ -657,6 +657,8 @@ type TreeNode struct {
 	Right *TreeNode
 }
 
+// Maximum Depth of Binary Tree
+// https://leetcode.com/problems/maximum-depth-of-binary-tree/
 func maxDepth(root *TreeNode) int {
 	// approach one: classic algorithm to find the height of a binary tree (recursive)
 	// base case: root == nil -> return 0
