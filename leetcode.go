@@ -649,3 +649,51 @@ func productExceptSelfApproachFour(nums []int) []int {
 
 	return answer
 }
+
+// Definition for a binary tree node.
+type TreeNode struct {
+	Val   int
+	Left  *TreeNode
+	Right *TreeNode
+}
+
+func maxDepth(root *TreeNode) int {
+	// approach one: classic algorithm to find the height of a binary tree (recursive)
+	// base case: root == nil -> return 0
+	// "process the current node": if left != nil -> go deeper, (+ same for the right)
+	// return max(left, right) + 1
+
+	// example
+	// tree = [3,9,20,null,null,15,7]
+
+	// "height" technically counts the number of edges and we want to count nodes
+	// so let's add 1 to include the root node
+	return maxDepthHelper(root, 1)
+}
+
+func maxDepthHelper(root *TreeNode, depth int) int {
+	// base case
+	if root == nil {
+		return 0
+	}
+
+	// "process" the current node
+	var heightL, heightR int
+	if root.Left != nil {
+		heightL = maxDepthHelper(root.Left, depth) // double check on the depth val here
+	}
+
+	if root.Right != nil {
+		heightR = maxDepthHelper(root.Right, depth) // double check on the depth val here
+	}
+
+	return max(heightL, heightR) + 1
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
+}
