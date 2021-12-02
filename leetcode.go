@@ -601,3 +601,51 @@ func containsDuplicateTwo(nums []int) bool {
 
 	return false
 }
+
+// Product Array Except Self
+// https://leetcode.com/problems/product-of-array-except-self/submissions/
+func productExceptSelf(nums []int) []int {
+	// approach one (realistic): first pass multiple all of them, second pass divide by i
+	// stupid constraint to not use '/' though ...
+
+	// approach two (brute force): for each element go through every other element to get
+	// answer[i]. time = O(n^2), space = O(1)
+
+	// can I update all "ongoing" products without visiting/comparing an index more than
+	// a few times?
+
+	// approach three: "windshield wiper" -> iterate forwards and backwards, until the mid
+	// on each swipe, we can update the the "end" index with what we've computed
+	// time = still O(n^2) but slightly better, space = O(1)
+
+	// we don't need to compute products all over again though?
+	// I know everything before a number and everything after it in the array
+
+	// approach four: (aha moment) windshield wiper actually doesn't need to converge
+	// if we store every running product iterating from left -> right
+	// we get partial answers for (0, i]
+	// if we do the same backwards, our running product would be (i, n -1)
+	// the product of both sub answers == the actual product
+	return productExceptSelfApproachFour(nums)
+}
+
+func productExceptSelfApproachFour(nums []int) []int {
+	l := len(nums)
+	answer := make([]int, l)
+
+	// iterate from left to right
+	p1 := 1
+	for i := 0; i < l; i++ {
+		answer[i] = p1
+		p1 *= nums[i]
+	}
+
+	// iterate from right to left
+	p2 := 1
+	for j := l - 1; j >= 0; j-- {
+		answer[j] *= p2
+		p2 *= nums[j]
+	}
+
+	return answer
+}
