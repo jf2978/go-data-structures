@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/heap"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -551,4 +552,52 @@ func topKFrequentApproachTwo(nums []int, k int) []int {
 	}
 
 	return result
+}
+
+func containsDuplicate(nums []int) bool {
+	// approach one: store nums in a set, break and return if we find a duplicate
+	// return containsDuplicateOne(nums)
+	// time = O(n) best we can do since we need to see every element to know
+	// space = O(n) worst case nums is an array of all unique elements (set would be n)
+
+	// can we do better space wise?
+	// additional insight: keep a running value that tells us if some number was seen
+
+	// approach two: if our nums was sorted, we could return as soon as we get a num 2x
+	// time = O(nlogn), space = O(1)
+	return containsDuplicateTwo(nums)
+}
+
+func containsDuplicateOne(nums []int) bool {
+	set := make(map[int]bool)
+	for _, v := range nums {
+		if set[v] {
+			return true // duplicate num found
+		}
+		set[v] = true
+	}
+
+	return false
+}
+
+func containsDuplicateTwo(nums []int) bool {
+	if len(nums) < 2 {
+		return false
+	}
+
+	// sort nums
+	sort.Ints(nums)
+
+	// look for a streak of nums
+	prev := nums[0]
+	for i := 1; i < len(nums); i++ {
+		current := nums[i]
+		if prev == current {
+			return true
+		}
+
+		prev = current
+	}
+
+	return false
 }
