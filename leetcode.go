@@ -798,3 +798,107 @@ func invertTreeHelper(root *TreeNode) *TreeNode {
 
 	return root
 }
+
+// Minimum Window Substring
+// https://leetcode.com/problems/minimum-window-substring/
+func minWindow(s string, t string) string {
+	// thinking...
+	// minimum window -> makes me think we use a sliding window (2 ptrs) for this
+	// including duplicates -> can't use a set or a hash on the characters really
+	// order doesn't matter -> ABC can be BAC in the other string and that'd be the ans
+	// can assume test case has a unique answer
+	// can include both upper and lower case (those are considered different in the sol)
+
+	// approach one: brute force = try every substring in s of at least len(t)
+	// time = O(n^2) n substrings, each comparing characters
+	// space = constant
+
+	// approach 2: sliding window with a bunch of checks
+	// create a substring window of string s; i = 0, j = 0
+	// while we still have characters to read... (j < len(s))
+	// - add char at j to running solution, update freq if exsts in map
+
+	// - check if we have a working substring (charsLeft <= 0):
+	// -- shrink the window (from start) while that remains true
+	// -- remove freqs from map (but only if doing so wouldn't break our constraint)
+	// -- then update sol if shorter
+
+	// - if we have a solution -> increment both i and j, remove freq of s[i] from map and update charsLeft
+	// - if we don't have a sol - only increment j
+	// for each character (at most n) subtract from frequencies if in our map if exist
+
+	// return sol
+
+	// time complexity = O(m + n)
+	// space = constant
+
+	return minWindowApproachTwo(s, t)
+}
+
+func minWindowApproachTwo(s, t string) string {
+	// edge case
+	if len(t) > len(s) {
+		return ""
+	}
+
+	// storage
+	m, n := len(s), len(t)
+	freqs := make(map[rune]int, n) // at most n unique letters
+
+	// initialize frequencies to the ones we care about in t
+	for _, r := range t {
+		freqs[r] += 1
+	}
+
+	var sol string
+	charsLeft := n
+
+	// - charsLeft = len(t), each time we slide and check the letter, update if in map
+	i, j := 0, 0
+	for i <= j && j < m {
+		c := rune(s[j])
+
+		// if this character is also in t then count that frequency
+		if freq, ok := freqs[c]; ok {
+			freqs[c] = freq - 1
+
+			// don't count it if it's a dup
+			if freq > 0 {
+				charsLeft--
+			}
+		}
+
+		// note: charsLeft can be negative if we have multiple letters that are in t
+		var first rune
+		for charsLeft <= 0 {
+			first = rune(s[i])
+
+			// if our first character is irrelevant, just increment first
+			if _, ok := freqs[first]; !ok {
+				i++
+				continue
+			} else if freq, ok := freqs[first]; ok && freq < 0 {
+				// if our first c is relevant, but duplicated, increment + update map
+				i++
+				freqs[first]++
+			} else if freq, ok := freqs[first]; ok && freq == 0 {
+				// else, capture our solution and move our start up
+				if sol == "" {
+					sol = s[i : j+1] // [inclusive idx, exlcusive)
+				} else if j-i+1 < len(sol) {
+					sol = s[i : j+1]
+				}
+
+				i++
+				freqs[first]++
+				charsLeft++
+				break
+			}
+		}
+
+		j++
+
+	}
+
+	return sol
+}
