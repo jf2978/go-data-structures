@@ -902,3 +902,74 @@ func minWindowApproachTwo(s, t string) string {
 
 	return sol
 }
+
+// Climbing Stairs
+// https://leetcode.com/problems/climbing-stairs/
+func climbStairs(n int) int {
+	// distinct = where at any given step out of n, you take x steps (at that same point)
+	// approach one: (brute force) for a given n, we work backwards (recusively reducing n)
+	// time complexity = bad, lots of repeated work
+
+	// approach two: memoized recursion, do the same as approach one, but this time store a memo
+	// in an array memo[current step] = solution; we go deep first, memoize answers for n = small
+	// and it gets easier for larger n
+	// time complexity = technically O(n), but can still be optimized
+	// space complexity = O(n), memo is at most size of n + (stack frames will add n more)
+	// return climbStairsApproachTwo(n, map[int]int{})
+
+	// approach three = bottom up dp instead of top down recursion
+	// set base cases up in dp memory (for n = 1, 2, 3)
+	// then just iterate from 1 -> n: for each step, if mem[n] is already in memory get it
+	// if not, calculate n based on n-1 and n-2 (guaranteed to be in the mem arr)
+	// time complexity: O(n) each element can be figured out in constant time + iterate n times
+	// space complexity: O(n) literally only storing the answers for each n (no stack frames)
+	return climbStairsApproachThree(n)
+}
+
+func climbStairsApproachThree(n int) int {
+	// edge cases
+	if n == 1 {
+		return 1
+	}
+
+	if n == 2 {
+		return 2
+	}
+
+	mem := make([]int, n+1)
+	mem[0], mem[1], mem[2] = 0, 1, 2
+
+	for i := 3; i <= n; i++ {
+		mem[i] = mem[i-1] + mem[i-2]
+	}
+
+	return mem[n]
+}
+
+// technically right, but time limit is exceeded for most input > 40
+func climbStairsApproachTwo(n int, memo map[int]int) int {
+	// base cases: n == 1, 2 or 3
+	if n == 1 {
+		return 1
+	}
+
+	if n == 2 {
+		return 2
+	}
+
+	if n == 3 {
+		return 3
+	}
+
+	if n == 4 {
+		return 5
+	}
+
+	// memoized case: have we already seen this answer?
+	if v, ok := memo[n]; ok {
+		return v
+	}
+
+	// distinct ways to n = distinct ways to get to one step or two steps before
+	return climbStairsApproachTwo(n-1, memo) + climbStairsApproachTwo(n-2, memo)
+}
