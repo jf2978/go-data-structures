@@ -973,3 +973,154 @@ func climbStairsApproachTwo(n int, memo map[int]int) int {
 	// distinct ways to n = distinct ways to get to one step or two steps before
 	return climbStairsApproachTwo(n-1, memo) + climbStairsApproachTwo(n-2, memo)
 }
+
+// general idea: write a cache struct (key, value) of integers
+// we can only add elements up to the given cap, if putting a new element past that
+// we need to evict the "oldest" key (i.e. the one with the oldest access timestamp)
+
+// approach: map to store key values => fast access for Get()
+// Put() is fast if not yet at capacity, but eviction as is is O(n) because we need to
+// find the "least recently used" element\
+
+// instead keep a separate list that we continuously append whenever an operation occurs (LL)
+// when we put an element, we append to the list
+// when we get an element, we append to the list AND remove it from the head if it's there
+// that way head == oldest operation (it can only be head if that's the most recent operation
+// for that given key)
+
+// edge case I forgot about: if the element that needs updating is somewhere in the middle of
+// the linked list? we can't gaurantee we only have one instance of key, but instead
+// we can make it so that each key maps to a linked list element?
+
+// updated approach:
+// make a new map: key -> LL node(value) where that node is reference to the *most recent*
+// occurrence of that value
+// when we put an element:
+// - if not in map add it to the map w/ a new LL node, append that node to usages list
+// - if in map, append a new node to usages list, make that new node what map[key] points to, delete the old node (constant time because we have the direct reference)
+// when we get an element:
+// - if not in map -> return -1
+// - if in map -> append new node to usages list, remove old LL element, make map point to new 1
+// get time complexity: O(1) amortized -> map get + LL delete w/ reference + create new node
+// put time complexity: O(1) amortized -> (same)
+
+// alternate approach (not implemented): use a priority queue to keep track of priorities
+// put an element -> add to queue (update priority), if eviction, just extract min/max
+// get an element -> add to queue (update priority) again
+// all operations would be O(logn)
+
+import "container/list"
+
+type LRUCache struct {
+    capacity int
+    values map[int]*list.Element
+    uses *list.List
+}
+
+type Node struct {
+    key, value int
+}
+
+
+func Constructor(capacity int) LRUCache {
+    v := make(map[int]*list.Element, capacity)
+    l := list.New()
+
+    return LRUCache{
+        capacity: capacity,
+        values: v,
+        uses: l,
+    }
+}
+
+// Get retrives an element by key, or -1 if it does not exist
+// time complexity = O(1) amortized time because hash functions + LL swaps
+func (c *LRUCache) Get(key int) int {
+    if _, ok := c.values[key]; !ok {
+        return -1
+    }
+
+    // get the previous use of this key
+    prevElement := c.values[key]
+    prevNode := (prevElement.Value).(*Node)
+
+    // append this recent use
+    n := &Node{
+        key: key,
+        value: prevNode.value,
+    }
+
+    e := c.uses.PushBack(n)
+    c.values[key] = e
+
+    // remove the older usage from our linked list
+    c.uses.Remove(prevElement)
+
+    return (e.Value).(*Node).value
+}
+
+
+// Put adds an element by key and value to the cache
+// If we're already at capacity, Put evicts the least-recently used
+func (c *LRUCache) Put(key int, value int)  {
+    if prev, ok := c.values[key]; ok {
+        // append this more recent use
+        n := &Node{
+            key: key,
+            value: value,
+        }
+        e := c.uses.PushBack(n)
+
+        // remove the older usage from our linked list
+        c.uses.Remove(prev)
+        c.values[key] = e
+    } else {
+        if len(c.values) == c.capacity {
+            c.evict()
+        }
+
+        n := &Node{
+            key: key,
+            value: value,
+        }
+
+        e := c.uses.PushBack(n)
+        c.values[key] = e
+    }
+}
+
+func (c *LRUCache) evict() {
+    // the head of our list will be the least recently used element
+    lru := c.uses.Front()
+    key := (lru.Value).(*Node).key
+
+    // remove it from our uses (i.e. pop front)
+    c.uses.Remove(lru)
+
+    // remove it from our mem map
+    delete(c.values, key)
+}
+
+// updateKey updates the cache for a recent usage of the provided key
+func (c *LRUCache) updateKey(key, value int) *list.Element {
+    // get the previous use of this key
+    prev := c.values[key]
+    n := (prev.Value).(*Node)
+
+    // append this recent use
+    e := c.uses.PushBack(n)
+    c.values[key] = e
+
+    // remove the older usage from our linked list
+    c.uses.Remove(prev)
+
+    return e
+}
+
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * obj := Constructor(capacity);
+ * param_1 := obj.Get(key);
+ * obj.Put(key,value);
+ */
